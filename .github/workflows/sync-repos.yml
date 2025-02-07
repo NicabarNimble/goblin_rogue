@@ -1,0 +1,66 @@
+name: Repository Sync
+
+on:
+  workflow_dispatch:  # For CLI triggers
+    inputs:
+      source_repo:
+        description: 'Source repository'
+        required: true
+      target_repo:
+        description: 'Target repository'
+        required: true
+      branch_mapping:
+        description: 'Branch mapping (JSON format)'
+        required: false
+        default: '{"main":"main"}'
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours by default
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.4'  # Match the version from go.mod
+          cache: true
+
+      - name: Run sync operations
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_REPO: ${{ github.event.inputs.source_repo || vars.DEFAULT_SOURCE_REPO }}
+          TARGET_REPO: ${{ github.event.inputs.target_repo || vars.DEFAULT_TARGET_REPO }}
+          BRANCH_MAPPING: ${{ github.event.inputs.branch_mapping || vars.DEFAULT_BRANCH_MAPPING }}
+        run: |
+          # Install go-gittools if not running from the repo
+          if [ ! -f "go.mod" ]; then
+            go install github.com/NicabarNimble/go-gittools/cmd/gitsync@latest
+          fi
+          
+          # Run sync operation
+          gitsync run \
+            --repo "$SOURCE_REPO" \
+            --target "$TARGET_REPO" \
+            ${BRANCH_MAPPING:+"--branch-mapping=$BRANCH_MAPPING"}
+
+      - name: Handle errors
+        if: failure()
+        run: |
+          echo "::error::Repository sync failed. Check the logs for details."
+          exit 1
+
+      - name: Report status
+        if: always()
+        run: |
+          echo "::notice::Sync operation completed with status: ${{ job.status }}"

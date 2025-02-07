@@ -1,0 +1,6 @@
+{
+  "privateRepo": "https://github.com/org/private-repo.git",
+  "publicFork": "https://github.com/org/public-fork.git",
+  "branch": "main",
+  "token": "your-github-token"
+}

@@ -1,0 +1,41 @@
+# Environment files
+.env
+*.env
+
+# SSH and security files
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+*.keystore
+*.jks
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build and dependency directories
+/bin/
+/build/
+/dist/
+/vendor/
+/node_modules/
+
+# Log files
+*.log
+logs/
+.aider*
